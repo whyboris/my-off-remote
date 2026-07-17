@@ -45,10 +45,9 @@ export class AppComponent implements OnInit {
 
     const tray = await TrayIcon.new(options);
 
-    console.log(tray);
-
+    // console.log(tray);
     // this.enableAutostart();
-    this.handleSettings();
+    // this.handleSettings();
   }
 
   async enableAutostart() {

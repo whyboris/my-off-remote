@@ -14,6 +14,15 @@ fn get_uptime() {
     }
 }
 
+#[tauri::command]
+fn shutdown_windows() -> Result<(), String> {
+    // Execute: shutdown /s /t 0 (shutdown immediately)
+    std::process::Command::new("shutdown")
+        .args(["/s", "/t", "0"])
+        .output()
+        .map_err(|e| format!("Failed to execute shutdown: {}", e))?;
+    Ok(())
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -29,7 +38,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, shutdown_windows])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
