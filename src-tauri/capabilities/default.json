@@ -6,6 +6,9 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "core:app:allow-default-window-icon"
+    "core:app:allow-default-window-icon",
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }

@@ -1,8 +1,9 @@
 import { Component, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
-import { defaultWindowIcon } from "@tauri-apps/api/app";
-import { invoke } from "@tauri-apps/api/core";
 
+import { defaultWindowIcon } from "@tauri-apps/api/app";
+import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { invoke } from "@tauri-apps/api/core";
 import { Menu } from "@tauri-apps/api/menu";
 import { TrayIcon } from '@tauri-apps/api/tray';
 
@@ -41,6 +42,17 @@ export class AppComponent implements OnInit {
     const tray = await TrayIcon.new(options);
 
     console.log(tray);
+
+    // this.enableAutostart();
+  }
+
+  async enableAutostart() {
+    // Enable autostart
+    await enable();
+    // Check enable state
+    console.log(`registered for autostart? ${await isEnabled()}`);
+    // Disable autostart
+    disable();
   }
 
   greet(event: SubmitEvent, name: string): void {
