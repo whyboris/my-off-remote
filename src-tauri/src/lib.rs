@@ -1,8 +1,15 @@
 use system_uptime::get_os_uptime_duration;
 use axum::{routing::get, Router};
+use tower_http::services::ServeDir;
 
 async fn start_my_server() {
-    let app = Router::new().route("/", get(|| async { "Hello World" }));
+
+    let static_files_service = ServeDir::new("public");
+
+    let app = Router::new()
+        .route("/", get(|| async { "Hello World" }))
+        .fallback_service(ServeDir::new("assets"))
+        .nest_service("/static", static_files_service);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
