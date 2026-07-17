@@ -48,6 +48,16 @@ export class AppComponent implements OnInit {
     // console.log(tray);
     // this.enableAutostart();
     // this.handleSettings();
+    this.startServer();
+  }
+
+  startServer() {
+
+    const payload = "lol";
+    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+    invoke<string>("please_start_server", { payload }).then((text) => {
+      this.greetingMessage = text;
+    });
   }
 
   async enableAutostart() {
