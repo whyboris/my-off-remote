@@ -1,6 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
+import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
+
+import { Menu } from "@tauri-apps/api/menu";
+import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
   selector: "app-root",
@@ -8,8 +12,36 @@ import { invoke } from "@tauri-apps/api/core";
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.css",
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   greetingMessage = "";
+
+  constructor() { }
+
+  ngOnInit() {
+    this.setUpTray();
+  }
+
+  async setUpTray() {
+
+    const menu = await Menu.new({
+      items: [
+        {
+          id: 'quit',
+          text: 'Quit',
+        },
+      ],
+    });
+
+    const options: any = {
+      menu,
+      icon: await defaultWindowIcon(),
+      menuOnLeftClick: true,
+    };
+
+    const tray = await TrayIcon.new(options);
+
+    console.log(tray);
+  }
 
   greet(event: SubmitEvent, name: string): void {
     event.preventDefault();
