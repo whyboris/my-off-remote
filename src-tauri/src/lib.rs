@@ -11,7 +11,7 @@ async fn start_my_server() {
         .fallback_service(ServeDir::new("assets"))
         .nest_service("/static", static_files_service);
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .unwrap();
 
