@@ -9,6 +9,7 @@ import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
+import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 
 @Component({
   selector: "app-root",
@@ -66,6 +67,9 @@ export class AppComponent implements OnInit {
       }, 3000);
 
     }, 6000);
+
+    const networkInfo = await getNetworkInfo();
+    console.log("Local IP Address:", networkInfo.ipAddress);
   }
 
   async moveWindowDownRight() {
