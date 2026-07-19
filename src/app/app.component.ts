@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { RouterOutlet } from "@angular/router";
 
 import { QrCodeComponent } from 'ng-qrcode';
 
@@ -15,7 +14,7 @@ import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
   selector: "app-root",
-  imports: [RouterOutlet, QrCodeComponent],
+  imports: [QrCodeComponent],
   templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
