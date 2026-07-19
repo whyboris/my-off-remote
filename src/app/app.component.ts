@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
@@ -15,6 +15,7 @@ import { getNetworkInfo } from 'tauri-plugin-device-info-api';
   selector: "app-root",
   imports: [RouterOutlet],
   templateUrl: "./app.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
 })
 export class AppComponent implements OnInit {
