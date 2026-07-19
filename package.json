@@ -22,6 +22,7 @@
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-positioner": "^2.3.3",
     "@tauri-apps/plugin-store": "^2.4.3",
+    "ng-qrcode": "^22.0.0",
     "rxjs": "~7.8.2",
     "tauri-plugin-device-info-api": "^1.0.1",
     "tslib": "^2.8.1"

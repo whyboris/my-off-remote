@@ -1,19 +1,21 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 
+import { QrCodeComponent } from 'ng-qrcode';
+
 import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
-import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 
 @Component({
   selector: "app-root",
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, QrCodeComponent],
   templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
@@ -25,6 +27,9 @@ export class AppComponent implements OnInit {
   store: any;
 
   greetingMessage = "";
+
+  ipAddress = "";
+  port = 3000;
 
   constructor() { }
 
@@ -71,6 +76,9 @@ export class AppComponent implements OnInit {
 
     const networkInfo = await getNetworkInfo();
     console.log("Local IP Address:", networkInfo.ipAddress);
+    if (networkInfo.ipAddress) {
+      this.ipAddress = networkInfo.ipAddress;
+    }
   }
 
   async moveWindowDownRight() {
