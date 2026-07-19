@@ -3,11 +3,12 @@ import { RouterOutlet } from "@angular/router";
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { invoke } from "@tauri-apps/api/core";
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
+import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 
 @Component({
   selector: "app-root",
@@ -55,6 +56,8 @@ export class AppComponent implements OnInit {
 
     this.appWindow = getCurrentWindow();
 
+    this.moveWindowDownRight();
+
     setTimeout(() => {
       this.minimizeWindow();
 
@@ -65,12 +68,18 @@ export class AppComponent implements OnInit {
     }, 6000);
   }
 
+  async moveWindowDownRight() {
+    await moveWindow(Position.BottomRight);
+  }
+
   async minimizeWindow() {
     // await this.appWindow.minimize();
+    console.log('hiding');
     await this.appWindow.hide(); // minimizes to tray
   }
 
   async restoreWindow() {
+    console.log('showing');
     await this.appWindow.show();
   }
 

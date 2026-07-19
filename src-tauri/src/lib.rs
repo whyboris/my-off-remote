@@ -70,6 +70,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_positioner::init())
         .invoke_handler(tauri::generate_handler![greet, shutdown_windows, please_start_server])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
