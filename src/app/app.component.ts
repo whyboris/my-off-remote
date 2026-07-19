@@ -7,6 +7,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { TrayIcon } from '@tauri-apps/api/tray';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 @Component({
   selector: "app-root",
@@ -15,6 +16,8 @@ import { TrayIcon } from '@tauri-apps/api/tray';
   styleUrl: "./app.component.css",
 })
 export class AppComponent implements OnInit {
+
+  appWindow: any;
 
   store: any;
 
@@ -49,6 +52,26 @@ export class AppComponent implements OnInit {
     // this.enableAutostart();
     // this.handleSettings();
     this.startServer();
+
+    this.appWindow = getCurrentWindow();
+
+    setTimeout(() => {
+      this.minimizeWindow();
+
+      setTimeout(() => {
+        this.restoreWindow();
+      }, 3000);
+
+    }, 6000);
+  }
+
+  async minimizeWindow() {
+    // await this.appWindow.minimize();
+    await this.appWindow.hide(); // minimizes to tray
+  }
+
+  async restoreWindow() {
+    await this.appWindow.show();
   }
 
   startServer() {

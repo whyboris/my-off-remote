@@ -53,7 +53,6 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-
 #[tauri::command]
 async fn please_start_server(payload: String) -> Result<String, String> {
 
