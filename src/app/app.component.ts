@@ -11,6 +11,7 @@ import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
+import { exit } from '@tauri-apps/plugin-process';
 
 @Component({
   selector: "app-root",
@@ -36,6 +37,10 @@ export class AppComponent implements OnInit {
     this.setUpTray();
   }
 
+  async exitApp() {
+    await exit(0);
+  }
+
   async setUpTray() {
 
     const menu = await Menu.new({
@@ -43,6 +48,7 @@ export class AppComponent implements OnInit {
         {
           id: 'quit',
           text: 'Quit',
+          action: this.exitApp,
         },
       ],
     });
