@@ -61,7 +61,15 @@ export class AppComponent implements OnInit {
     const options: any = {
       menu,
       icon: await defaultWindowIcon(),
-      menuOnLeftClick: true,
+      action: (event: any) => {
+        switch (event.type) {
+          case 'Click':
+            if (event.button === "Left" && event.buttonState === "Up") {
+              this.restoreWindow();
+            }
+            break;
+        }
+      }
     };
 
     const tray = await TrayIcon.new(options);
@@ -77,7 +85,9 @@ export class AppComponent implements OnInit {
 
     await listen(TauriEvent.WINDOW_BLUR, (event) => {
       console.log('App lost focus');
-      this.minimizeWindow();
+      setTimeout(() => {
+        this.minimizeWindow();
+      }, 100); // helps with clicking on tray when window is open - reduces flicker
     });
 
     // setTimeout(() => {
