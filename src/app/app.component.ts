@@ -1,17 +1,18 @@
-import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef } from "@angular/core";
 
 import { QrCodeComponent } from 'ng-qrcode';
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
+import { listen, TauriEvent } from '@tauri-apps/api/event';
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
-import { exit } from '@tauri-apps/plugin-process';
 
 @Component({
   selector: "app-root",
@@ -21,6 +22,8 @@ import { exit } from '@tauri-apps/plugin-process';
   styleUrl: "./app.component.css",
 })
 export class AppComponent implements OnInit {
+
+  private cd = inject(ChangeDetectorRef);
 
   appWindow: any;
 
@@ -40,6 +43,8 @@ export class AppComponent implements OnInit {
   async exitApp() {
     await exit(0);
   }
+
+  unlistenBlur: any;
 
   async setUpTray() {
 
@@ -70,19 +75,25 @@ export class AppComponent implements OnInit {
 
     this.moveWindowDownRight();
 
-    setTimeout(() => {
+    await listen(TauriEvent.WINDOW_BLUR, (event) => {
+      console.log('App lost focus');
       this.minimizeWindow();
+    });
+
+    // setTimeout(() => {
+    //   this.minimizeWindow();
 
       setTimeout(() => {
         this.restoreWindow();
-      }, 3000);
+      }, 2000);
 
-    }, 6000);
+    // }, 6000);
 
     const networkInfo = await getNetworkInfo();
     console.log("Local IP Address:", networkInfo.ipAddress);
     if (networkInfo.ipAddress) {
       this.ipAddress = networkInfo.ipAddress;
+      this.cd.detectChanges();
     }
   }
 

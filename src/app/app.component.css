@@ -24,6 +24,9 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
+  background: #f0f0f0;
+  border-radius: 12px;
+  margin-right: 12px;
 }
 
 .logo {

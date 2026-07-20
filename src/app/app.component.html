@@ -1,15 +1,9 @@
 <main class="container">
-  <h1>Welcome to Tauri + Angular!</h1>
+  <h1>{{ ipAddress + ":" + port.toString() }}</h1>
 
   <div class="row">
     <qr-code value="{{ 'http://' + ipAddress + ':' + port.toString() }}"
             size="300"
             errorCorrectionLevel="M" />
   </div>
-
-  <form class="row" (submit)="greet($event, greetInput.value)">
-    <input #greetInput id="greet-input" placeholder="Enter a name..." />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{{ greetingMessage }}</p>
 </main>

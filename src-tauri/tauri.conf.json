@@ -13,9 +13,13 @@
     "windows": [
       {
         "title": "my-off-remote",
-        "width": 800,
-        "height": 600,
-        "visible": false
+        "width": 400,
+        "height": 500,
+        "visible": false,
+        "decorations": false,
+        "resizable": false,
+        "transparent": true,
+        "shadow": false
       }
     ],
     "security": {
