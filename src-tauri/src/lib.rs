@@ -18,23 +18,6 @@ async fn start_my_server() {
     axum::serve(listener, app).await.unwrap();
 }
 
-fn get_uptime() {
-    match get_os_uptime_duration() {
-        Ok(uptime) => {
-            let days = uptime.as_secs() / 86400;
-            let hours = (uptime.as_secs() % 86400) / 3600;
-            let minutes = (uptime.as_secs() % 3600) / 60;
-            let seconds = uptime.as_secs() % 60;
-
-            println!(
-                "System Uptime: {}d {}h {}m {}s",
-                days, hours, minutes, seconds
-            );
-        }
-        Err(e) => eprintln!("Failed to get uptime: {}", e),
-    }
-}
-
 #[tauri::command]
 fn shutdown_windows() -> Result<(), String> {
     // Execute: shutdown /s /t 0 (shutdown immediately)
@@ -46,10 +29,26 @@ fn shutdown_windows() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    let _ = get_uptime();
+fn get_uptime() -> String {
+    match get_os_uptime_duration() {
+        Ok(uptime) => {
+            let days = uptime.as_secs() / 86400;
+            let hours = (uptime.as_secs() % 86400) / 3600;
+            let minutes = (uptime.as_secs() % 3600) / 60;
 
-    format!("Hello, {}! You've been greeted from Rust!", name)
+            println!(
+                "System Uptime: {}d {}h {}m",
+                days, hours, minutes
+            );
+
+            format!("System Uptime: {}d {}h {}m", days, hours, minutes)
+        }
+        Err(e) => {
+            eprintln!("Failed to get uptime: {}", e);
+
+            format!("ERROR")
+        }
+    }
 }
 
 #[tauri::command]
@@ -72,7 +71,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_positioner::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
+            get_uptime,
             shutdown_windows,
             please_start_server
         ])

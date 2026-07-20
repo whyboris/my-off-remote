@@ -1,6 +1,8 @@
 <main class="container">
   <h1>{{ ipAddress + ":" + port.toString() }}</h1>
 
+  <p>{{ uptime }}</p>
+
   <div class="row">
     <qr-code value="{{ 'http://' + ipAddress + ':' + port.toString() }}"
             size="300"

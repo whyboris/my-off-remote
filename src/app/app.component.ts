@@ -29,7 +29,7 @@ export class AppComponent implements OnInit {
 
   store: any;
 
-  greetingMessage = "";
+  uptime = "";
 
   ipAddress = "";
   port = 3000;
@@ -79,6 +79,8 @@ export class AppComponent implements OnInit {
     // this.handleSettings();
     this.startServer();
 
+    this.getUptime();
+
     this.appWindow = getCurrentWindow();
 
     this.moveWindowDownRight();
@@ -127,7 +129,7 @@ export class AppComponent implements OnInit {
     const payload = "lol";
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     invoke<string>("please_start_server", { payload }).then((text) => {
-      this.greetingMessage = text;
+      console.log('server responded:', text);
     });
   }
 
@@ -153,12 +155,9 @@ export class AppComponent implements OnInit {
     console.log(hi);
   }
 
-  greet(event: SubmitEvent, name: string): void {
-    event.preventDefault();
-
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    invoke<string>("greet", { name }).then((text) => {
-      this.greetingMessage = text;
+  getUptime(): void {
+    invoke<string>("get_uptime").then((text) => {
+      this.uptime = text;
     });
   }
 }
