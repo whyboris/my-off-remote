@@ -2,7 +2,14 @@
 
   <div class="ip-address">{{ ipAddress }}:</div>
 
-  <input id="port" class="port-input" type="number" min="1025" max="65500" [(ngModel)]="port" />
+  <input
+    class="port-input"
+    [(ngModel)]="port"
+    (ngModelChange)="stopServer()"
+    id="port"
+    min="1025"
+    max="65500"
+    type="number" />
 
   <div
     class="qr-code"
@@ -16,10 +23,6 @@
       margin="0"
       errorCorrectionLevel="M" />
   </div>
-
-  <!--
-  <p class="uptime">System uptime: {{ uptime | duration }}</p>
-  -->
 
   <div class="autostart-container">
     <div class="hoverable">

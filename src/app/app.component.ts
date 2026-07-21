@@ -15,14 +15,12 @@ import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
 
-import { UptimePipe } from "./uptime.pipe";
-
 @Component({
   selector: "app-root",
-  imports: [QrCodeComponent, FormsModule, UptimePipe],
+  imports: [QrCodeComponent, FormsModule],
   templateUrl: "./app.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.scss",
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class AppComponent implements OnInit {
 
@@ -33,12 +31,11 @@ export class AppComponent implements OnInit {
 
   port = model<number>(3000);
 
-  uptime = 0;
   ipAddress = "192.168.X.X";
-
-  serverRunning = false;
+  uptime = 0;
 
   autostart = true;
+  serverRunning = false;
 
   constructor() { }
 
@@ -49,8 +46,6 @@ export class AppComponent implements OnInit {
   async exitApp() {
     await exit(0);
   }
-
-  unlistenBlur: any;
 
   async setUpTray() {
 
@@ -83,7 +78,7 @@ export class AppComponent implements OnInit {
     // console.log(tray);
     // this.enableAutostart();
     // this.handleSettings();
-    this.startServer(this.port().toString());
+    this.startServer(this.port());
 
     this.getUptime();
 
@@ -131,14 +126,35 @@ export class AppComponent implements OnInit {
     await this.appWindow.show();
   }
 
-  startServer(port: string) {
-    invoke<string>("please_start_server", { port: parseInt(port, 10) }).then((text) => {
-      console.log('server responded:', text);
+  startServer(port: number) {
+
+    console.log('starting on port', port);
+
+    if (port < 1025 || port > 65500) {
+      this.port.set(3000);
+    }
+
+    invoke<number>("please_start_server", { port }).then((text) => {
+      console.log('server start response:', text);
     });
   }
 
+  stopServer() {
+    if (this.serverRunning) {
+      this.serverRunning = false;
+      invoke<string>("please_stop_server").then((text) => {
+        console.log('server responded:', text);
+      });
+    }
+  }
+
   toggleServer() {
-    console.log('toggling not implemented');
+    if (this.serverRunning) {
+      this.stopServer();
+    } else {
+      this.startServer(this.port());
+    }
+
     this.serverRunning = !this.serverRunning;
   }
 

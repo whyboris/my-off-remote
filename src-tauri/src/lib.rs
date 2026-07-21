@@ -51,6 +51,11 @@ async fn please_start_server(port: u16) -> Result<String, String> {
     Ok(format!("Processed: {}", port.to_string()))
 }
 
+#[tauri::command]
+async fn please_stop_server() -> Result<String, String> {
+    Ok(format!("not implemented"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -62,8 +67,9 @@ pub fn run() {
         .plugin(tauri_plugin_positioner::init())
         .invoke_handler(tauri::generate_handler![
             get_uptime,
+            please_start_server,
+            please_stop_server,
             shutdown_windows,
-            please_start_server
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
