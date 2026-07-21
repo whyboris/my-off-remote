@@ -1,11 +1,12 @@
 <main class="container">
-  <h1>{{ ipAddress + ":" + port.toString() }}</h1>
+  <div class="ip-address">{{ ipAddress }}:</div>
+  <input id="port" class="port-input" type="number" min="1025" max="65500" [(ngModel)]="port" />
+
+  <qr-code
+    value="{{ 'http://' + ipAddress + ':' + port() }}"
+    size="300"
+    errorCorrectionLevel="M" />
 
   <p>{{ uptime }}</p>
 
-  <div class="row">
-    <qr-code value="{{ 'http://' + ipAddress + ':' + port.toString() }}"
-            size="300"
-            errorCorrectionLevel="M" />
-  </div>
 </main>

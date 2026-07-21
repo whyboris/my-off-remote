@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef, model } from "@angular/core";
+import { FormsModule } from '@angular/forms';
 
 import { QrCodeComponent } from 'ng-qrcode';
 
@@ -16,7 +17,7 @@ import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
   selector: "app-root",
-  imports: [QrCodeComponent],
+  imports: [QrCodeComponent, FormsModule],
   templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
@@ -26,13 +27,12 @@ export class AppComponent implements OnInit {
   private cd = inject(ChangeDetectorRef);
 
   appWindow: any;
-
   store: any;
 
-  uptime = "";
+  port = model<number>(3000);
 
+  uptime = "";
   ipAddress = "";
-  port = 3000;
 
   constructor() { }
 
@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
     // console.log(tray);
     // this.enableAutostart();
     // this.handleSettings();
-    this.startServer();
+    this.startServer(this.port().toString());
 
     this.getUptime();
 
@@ -124,11 +124,8 @@ export class AppComponent implements OnInit {
     await this.appWindow.show();
   }
 
-  startServer() {
-
-    const payload = "lol";
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    invoke<string>("please_start_server", { payload }).then((text) => {
+  startServer(port: string) {
+    invoke<string>("please_start_server", { port: parseInt(port, 10) }).then((text) => {
       console.log('server responded:', text);
     });
   }
