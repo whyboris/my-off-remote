@@ -36,6 +36,11 @@ export class AppComponent implements OnInit {
   uptime = 0;
   ipAddress = "";
 
+  serverStatus = "off";
+
+  borderColor = "grey"; // grey = off, green = on
+  cursorStyle = "pointer" // `not-alowed`
+
   constructor() { }
 
   ngOnInit() {
@@ -131,6 +136,12 @@ export class AppComponent implements OnInit {
     invoke<string>("please_start_server", { port: parseInt(port, 10) }).then((text) => {
       console.log('server responded:', text);
     });
+  }
+
+  toggleServer() {
+    console.log('toggling not implemented');
+    this.borderColor = "green";
+    this.cursorStyle = "not-allowed";
   }
 
   async enableAutostart() {

@@ -51,6 +51,23 @@ input[type=number]:hover::-webkit-inner-spin-button {
   font-family: monospace;
 }
 
+.status {
+  border: 1px solid black;
+  position: absolute;
+  top: 15px;
+  right: 28px;
+  font-family: monospace;
+}
+
+.qr-code {
+  background: white;
+  border: 5px solid;
+  width: 300px;
+  border-radius: 30px;
+  padding: 20px;
+  margin: 20px auto;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #f6f6f6;

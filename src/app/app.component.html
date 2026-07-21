@@ -1,11 +1,24 @@
 <main class="container">
+
+  <div class="status">Status: {{ serverStatus }}</div>
+
   <div class="ip-address">{{ ipAddress }}:</div>
   <input id="port" class="port-input" type="number" min="1025" max="65500" [(ngModel)]="port" />
 
-  <qr-code
-    value="{{ 'http://' + ipAddress + ':' + port() }}"
-    size="300"
-    errorCorrectionLevel="M" />
+  <div
+    class="qr-code"
+    (click)="toggleServer()"
+    title="remote: {{ serverStatus }}"
+    [style.borderColor]="borderColor"
+    [style.cursor]="cursorStyle"
+  >
+    <qr-code
+      [style]="{ 'border-radius': '10px' }"
+      value="{{ 'http://' + ipAddress + ':' + port() }}"
+      size="300"
+      margin="0"
+      errorCorrectionLevel="M" />
+  </div>
 
   <p class="uptime">System uptime: {{ uptime | duration }}</p>
 
