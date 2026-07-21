@@ -1,19 +1,21 @@
-<main class="container">
+<main class="container" [class]="serverRunning ? 'remote-on' : 'remote-off'">
 
-  <div class="status">Status: {{ serverStatus }}</div>
+  <div class="status">running? {{ serverRunning }}</div>
 
   <div class="ip-address">{{ ipAddress }}:</div>
+
   <input id="port" class="port-input" type="number" min="1025" max="65500" [(ngModel)]="port" />
 
   <div
     class="qr-code"
     (click)="toggleServer()"
-    title="remote: {{ serverStatus }}"
-    [style.borderColor]="borderColor"
-    [style.cursor]="cursorStyle"
+    title="remote is {{ serverRunning ? 'ON' : 'OFF' }}"
+    [style.borderColor]="serverRunning ? 'green' : 'grey'"
+    [style.cursor]="serverRunning ? 'not-allowed' : 'pointer'"
+    [style.opacity]="serverRunning ? 1 : 0.5"
   >
     <qr-code
-      [style]="{ 'border-radius': '10px' }"
+      [style]="{ 'border-radius': '10px', 'border-bottom-right-radius': '0' }"
       value="{{ 'http://' + ipAddress + ':' + port() }}"
       size="300"
       margin="0"
@@ -21,5 +23,7 @@
   </div>
 
   <p class="uptime">System uptime: {{ uptime | duration }}</p>
+
+  <p class="autostart" (click)="toggleAutostart()">{{ autostart ? 'auto' : 'no' }}</p>
 
 </main>

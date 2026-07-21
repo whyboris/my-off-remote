@@ -18,6 +18,7 @@
 }
 
 .container {
+  position: relative;
   background: #f0f0f0;
   border-radius: 12px;
   border: 1px solid #999999;
@@ -25,6 +26,18 @@
   margin-right: 12px;
   padding-top: 20px;
   text-align: center;
+}
+
+.remote-on {
+  .ip-address {
+    color: black;
+  }
+}
+
+.remote-off {
+  .ip-address {
+    color: #888888;
+  }
 }
 
 .ip-address,
@@ -35,12 +48,13 @@
 }
 
 .ip-address {
-  border: 1px solid blue;
+  padding-left: 50px;
   cursor: default;
 }
 
 .port-input {
-  border: 1px solid red;
+  background: transparent;
+  border: 0;
 }
 
 input[type=number]:hover::-webkit-inner-spin-button {
@@ -51,11 +65,16 @@ input[type=number]:hover::-webkit-inner-spin-button {
   font-family: monospace;
 }
 
+.autostart {
+  font-family: monospace;
+  cursor: pointer;
+}
+
 .status {
   border: 1px solid black;
   position: absolute;
-  top: 15px;
-  right: 28px;
+  bottom: 15px;
+  right: 15px;
   font-family: monospace;
 }
 

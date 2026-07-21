@@ -22,7 +22,7 @@ import { UptimePipe } from "./uptime.pipe";
   imports: [QrCodeComponent, FormsModule, UptimePipe],
   templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: "./app.component.css",
+  styleUrl: "./app.component.scss",
 })
 export class AppComponent implements OnInit {
 
@@ -34,12 +34,11 @@ export class AppComponent implements OnInit {
   port = model<number>(3000);
 
   uptime = 0;
-  ipAddress = "";
+  ipAddress = "192.168.X.X";
 
-  serverStatus = "off";
+  serverRunning = false;
 
-  borderColor = "grey"; // grey = off, green = on
-  cursorStyle = "pointer" // `not-alowed`
+  autostart = true;
 
   constructor() { }
 
@@ -140,8 +139,11 @@ export class AppComponent implements OnInit {
 
   toggleServer() {
     console.log('toggling not implemented');
-    this.borderColor = "green";
-    this.cursorStyle = "not-allowed";
+    this.serverRunning = !this.serverRunning;
+  }
+
+  toggleAutostart() {
+    this.autostart = !this.autostart;
   }
 
   async enableAutostart() {
