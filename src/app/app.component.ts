@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   ipAddress = "192.168.X.X";
   uptime = 0;
 
+  portTaken = false;
   autostart = true;
   serverRunning = false;
 
@@ -114,6 +115,28 @@ export class AppComponent implements OnInit {
     await moveWindow(Position.BottomRight);
   }
 
+  /**
+   * Makes POST request to `/off` endpoint to initiate server shutdown
+   */
+  async requestServerShutdown() {
+    const url = "http://" + this.ipAddress + ':' + this.port() + '/off';
+
+    console.log(url);
+
+    try {
+      const response = await fetch(url, { method: 'post' });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      console.log('Success!', response);
+
+    } catch (error) {
+      console.error('Native fetch failed:', error);
+    }
+  }
+
   async minimizeWindow() {
     // await this.appWindow.minimize();
     console.log('hiding');
@@ -134,24 +157,33 @@ export class AppComponent implements OnInit {
       this.port.set(3000);
     }
 
-    await invoke<number>("please_start_server", { port }).then((text) => {
+    // do not `await` since text returns only when server errors out
+    invoke<string>("please_start_server", { port }).then((text) => {
+      if (text) {
+        // text returns on error (port taken) or after shut down (return string after axum::serve)
+        console.log(text);
+        setTimeout(() => {
+          if (text !== "server is off") { // hardcoded on back end, do not change either
+            this.portTaken = true;
+          }
+          this.serverRunning = false;
+          this.cd.detectChanges();
+        }, 5);
+      }
+    })
 
-      console.log("ONETUHNOETHUNOTEHUNTOEHUNTOEHUNTOEHUNTOHEU");
-
-
-      this.serverRunning = true;
-      this.cd.detectChanges();
-
-      console.log('server start response:', text);
-    });
+    this.serverRunning = true;
   }
 
   async stopServer() {
+
+    this.portTaken = false;
+
     if (this.serverRunning) {
+
+      await this.requestServerShutdown();
+
       this.serverRunning = false;
-      await invoke<string>("please_stop_server").then((text) => {
-        console.log('server responded:', text);
-      });
     }
   }
 
