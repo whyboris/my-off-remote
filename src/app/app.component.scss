@@ -17,39 +17,30 @@
   -webkit-text-size-adjust: 100%;
 }
 
+// default style for when the remote is OFF
+
 .container {
-  position: relative;
   background: #f0f0f0;
   border-radius: 12px;
   border: 1px solid #999999;
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   margin-right: 12px;
   padding-top: 20px;
+  position: relative;
   text-align: center;
-}
-
-.remote-on {
-  .ip-address {
-    color: black;
-  }
-}
-
-.remote-off {
-  .ip-address {
-    color: #888888;
-  }
 }
 
 .ip-address,
 .port-input {
+  display: inline-block;
   font-family: monospace;
   font-size: 30px;
-  display: inline-block;
 }
 
 .ip-address {
-  padding-left: 50px;
+  color: #888888;
   cursor: default;
+  padding-left: 50px;
 }
 
 .port-input {
@@ -66,25 +57,36 @@ input[type=number]:hover::-webkit-inner-spin-button {
 }
 
 .autostart {
-  font-family: monospace;
   cursor: pointer;
-}
-
-.status {
-  border: 1px solid black;
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
   font-family: monospace;
+  margin-bottom: 24px;
 }
 
 .qr-code {
   background: white;
-  border: 5px solid;
-  width: 300px;
   border-radius: 30px;
-  padding: 20px;
+  border: 5px solid;
   margin: 20px auto;
+  padding: 20px;
+  width: 260px;
+
+    border-color: grey;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+// Configure styles for when the remote is on
+
+.remote-on {
+  .ip-address {
+    color: black;
+  }
+
+  .qr-code {
+    border-color: green;
+    cursor: not-allowed;
+    opacity: 1;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

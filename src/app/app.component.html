@@ -1,6 +1,4 @@
-<main class="container" [class]="serverRunning ? 'remote-on' : 'remote-off'">
-
-  <div class="status">running? {{ serverRunning }}</div>
+<main class="container" [class]="{ 'remote-on': serverRunning }">
 
   <div class="ip-address">{{ ipAddress }}:</div>
 
@@ -10,20 +8,19 @@
     class="qr-code"
     (click)="toggleServer()"
     title="remote is {{ serverRunning ? 'ON' : 'OFF' }}"
-    [style.borderColor]="serverRunning ? 'green' : 'grey'"
-    [style.cursor]="serverRunning ? 'not-allowed' : 'pointer'"
-    [style.opacity]="serverRunning ? 1 : 0.5"
   >
     <qr-code
       [style]="{ 'border-radius': '10px', 'border-bottom-right-radius': '0' }"
       value="{{ 'http://' + ipAddress + ':' + port() }}"
-      size="300"
+      size="260"
       margin="0"
       errorCorrectionLevel="M" />
   </div>
 
+  <!--
   <p class="uptime">System uptime: {{ uptime | duration }}</p>
+  -->
 
-  <p class="autostart" (click)="toggleAutostart()">{{ autostart ? 'auto' : 'no' }}</p>
+  <p class="autostart" (click)="toggleAutostart()">{{ autostart ? 'autostart' : 'no autostart' }}</p>
 
 </main>
