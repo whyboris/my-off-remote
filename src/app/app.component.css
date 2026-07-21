@@ -36,10 +36,19 @@
 
 .ip-address {
   border: 1px solid blue;
+  cursor: default;
 }
 
 .port-input {
   border: 1px solid red;
+}
+
+input[type=number]:hover::-webkit-inner-spin-button {
+  cursor: ns-resize;
+}
+
+.uptime {
+  font-family: monospace;
 }
 
 @media (prefers-color-scheme: dark) {

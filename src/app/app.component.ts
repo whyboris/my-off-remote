@@ -15,9 +15,11 @@ import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
 
+import { UptimePipe } from "./uptime.pipe";
+
 @Component({
   selector: "app-root",
-  imports: [QrCodeComponent, FormsModule],
+  imports: [QrCodeComponent, FormsModule, UptimePipe],
   templateUrl: "./app.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
@@ -31,7 +33,7 @@ export class AppComponent implements OnInit {
 
   port = model<number>(3000);
 
-  uptime = "";
+  uptime = 0;
   ipAddress = "";
 
   constructor() { }
@@ -116,7 +118,8 @@ export class AppComponent implements OnInit {
   async minimizeWindow() {
     // await this.appWindow.minimize();
     console.log('hiding');
-    await this.appWindow.hide(); // minimizes to tray
+    // next line disabled for dev:
+    // await this.appWindow.hide(); // minimizes to tray
   }
 
   async restoreWindow() {
@@ -153,8 +156,8 @@ export class AppComponent implements OnInit {
   }
 
   getUptime(): void {
-    invoke<string>("get_uptime").then((text) => {
-      this.uptime = text;
+    invoke<number>("get_uptime").then((duration) => {
+      this.uptime = duration;
     });
   }
 }

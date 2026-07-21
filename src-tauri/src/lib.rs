@@ -29,24 +29,14 @@ fn shutdown_windows() -> Result<(), String> {
 }
 
 #[tauri::command]
-fn get_uptime() -> String {
+fn get_uptime() -> Option<u64> {
     match get_os_uptime_duration() {
         Ok(uptime) => {
-            let days = uptime.as_secs() / 86400;
-            let hours = (uptime.as_secs() % 86400) / 3600;
-            let minutes = (uptime.as_secs() % 3600) / 60;
-
-            println!(
-                "System Uptime: {}d {}h {}m",
-                days, hours, minutes
-            );
-
-            format!("System Uptime: {}d {}h {}m", days, hours, minutes)
+            Some(uptime.as_secs())
         }
         Err(e) => {
             eprintln!("Failed to get uptime: {}", e);
-
-            format!("ERROR")
+            None
         }
     }
 }
