@@ -27,6 +27,9 @@ system-uptime = "0.2.0"
 tokio = { version = "1", features = ["full"] }
 axum = "0.7"
 tower-http = { version = "0.7", features = ["fs"] }
+tauri-plugin-positioner = "2.0.0"
+tauri-plugin-device-info = "1.0.1"
+tauri-plugin-process = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"

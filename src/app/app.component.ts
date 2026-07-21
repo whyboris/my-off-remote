@@ -1,30 +1,50 @@
-import { Component, OnInit } from "@angular/core";
-import { RouterOutlet } from "@angular/router";
+import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef } from "@angular/core";
+
+import { QrCodeComponent } from 'ng-qrcode';
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
 import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { exit } from '@tauri-apps/plugin-process';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
+import { listen, TauriEvent } from '@tauri-apps/api/event';
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
+import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
 import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
   selector: "app-root",
-  imports: [RouterOutlet],
+  imports: [QrCodeComponent],
   templateUrl: "./app.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./app.component.css",
 })
 export class AppComponent implements OnInit {
 
+  private cd = inject(ChangeDetectorRef);
+
+  appWindow: any;
+
   store: any;
 
-  greetingMessage = "";
+  uptime = "";
+
+  ipAddress = "";
+  port = 3000;
 
   constructor() { }
 
   ngOnInit() {
     this.setUpTray();
   }
+
+  async exitApp() {
+    await exit(0);
+  }
+
+  unlistenBlur: any;
 
   async setUpTray() {
 
@@ -33,6 +53,7 @@ export class AppComponent implements OnInit {
         {
           id: 'quit',
           text: 'Quit',
+          action: this.exitApp,
         },
       ],
     });
@@ -40,7 +61,15 @@ export class AppComponent implements OnInit {
     const options: any = {
       menu,
       icon: await defaultWindowIcon(),
-      menuOnLeftClick: true,
+      action: (event: any) => {
+        switch (event.type) {
+          case 'Click':
+            if (event.button === "Left" && event.buttonState === "Up") {
+              this.restoreWindow();
+            }
+            break;
+        }
+      }
     };
 
     const tray = await TrayIcon.new(options);
@@ -49,6 +78,50 @@ export class AppComponent implements OnInit {
     // this.enableAutostart();
     // this.handleSettings();
     this.startServer();
+
+    this.getUptime();
+
+    this.appWindow = getCurrentWindow();
+
+    this.moveWindowDownRight();
+
+    await listen(TauriEvent.WINDOW_BLUR, (event) => {
+      console.log('App lost focus');
+      setTimeout(() => {
+        this.minimizeWindow();
+      }, 100); // helps with clicking on tray when window is open - reduces flicker
+    });
+
+    // setTimeout(() => {
+    //   this.minimizeWindow();
+
+      setTimeout(() => {
+        this.restoreWindow();
+      }, 2000);
+
+    // }, 6000);
+
+    const networkInfo = await getNetworkInfo();
+    console.log("Local IP Address:", networkInfo.ipAddress);
+    if (networkInfo.ipAddress) {
+      this.ipAddress = networkInfo.ipAddress;
+      this.cd.detectChanges();
+    }
+  }
+
+  async moveWindowDownRight() {
+    await moveWindow(Position.BottomRight);
+  }
+
+  async minimizeWindow() {
+    // await this.appWindow.minimize();
+    console.log('hiding');
+    await this.appWindow.hide(); // minimizes to tray
+  }
+
+  async restoreWindow() {
+    console.log('showing');
+    await this.appWindow.show();
   }
 
   startServer() {
@@ -56,7 +129,7 @@ export class AppComponent implements OnInit {
     const payload = "lol";
     // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     invoke<string>("please_start_server", { payload }).then((text) => {
-      this.greetingMessage = text;
+      console.log('server responded:', text);
     });
   }
 
@@ -82,12 +155,9 @@ export class AppComponent implements OnInit {
     console.log(hi);
   }
 
-  greet(event: SubmitEvent, name: string): void {
-    event.preventDefault();
-
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    invoke<string>("greet", { name }).then((text) => {
-      this.greetingMessage = text;
+  getUptime(): void {
+    invoke<string>("get_uptime").then((text) => {
+      this.uptime = text;
     });
   }
 }
