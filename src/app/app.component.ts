@@ -78,7 +78,7 @@ export class AppComponent implements OnInit {
     // console.log(tray);
     // this.enableAutostart();
     // this.handleSettings();
-    this.startServer(this.port());
+    // this.startServer(this.port());
 
     this.getUptime();
 
@@ -126,7 +126,7 @@ export class AppComponent implements OnInit {
     await this.appWindow.show();
   }
 
-  startServer(port: number) {
+  async startServer(port: number) {
 
     console.log('starting on port', port);
 
@@ -134,15 +134,22 @@ export class AppComponent implements OnInit {
       this.port.set(3000);
     }
 
-    invoke<number>("please_start_server", { port }).then((text) => {
+    await invoke<number>("please_start_server", { port }).then((text) => {
+
+      console.log("ONETUHNOETHUNOTEHUNTOEHUNTOEHUNTOEHUNTOHEU");
+
+
+      this.serverRunning = true;
+      this.cd.detectChanges();
+
       console.log('server start response:', text);
     });
   }
 
-  stopServer() {
+  async stopServer() {
     if (this.serverRunning) {
       this.serverRunning = false;
-      invoke<string>("please_stop_server").then((text) => {
+      await invoke<string>("please_stop_server").then((text) => {
         console.log('server responded:', text);
       });
     }
@@ -150,12 +157,15 @@ export class AppComponent implements OnInit {
 
   toggleServer() {
     if (this.serverRunning) {
+      console.log('stopping');
       this.stopServer();
     } else {
+      console.log('starting');
       this.startServer(this.port());
     }
 
-    this.serverRunning = !this.serverRunning;
+    // console.log('toggling...');
+    // this.serverRunning = !this.serverRunning;
   }
 
   toggleAutostart() {
@@ -184,8 +194,8 @@ export class AppComponent implements OnInit {
     console.log(hi);
   }
 
-  getUptime(): void {
-    invoke<number>("get_uptime").then((duration) => {
+  async getUptime() {
+    await invoke<number>("get_uptime").then((duration) => {
       this.uptime = duration;
     });
   }
