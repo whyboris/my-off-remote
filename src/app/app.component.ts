@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef, model } from "@angular/core";
+import { FormsModule } from '@angular/forms';
 
 import { QrCodeComponent } from 'ng-qrcode';
 
@@ -16,23 +17,25 @@ import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
   selector: "app-root",
-  imports: [QrCodeComponent],
+  imports: [QrCodeComponent, FormsModule],
   templateUrl: "./app.component.html",
+  styleUrl: "./app.component.scss",
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: "./app.component.css",
 })
 export class AppComponent implements OnInit {
 
   private cd = inject(ChangeDetectorRef);
 
   appWindow: any;
-
   store: any;
 
-  uptime = "";
+  port = model<number>(3000);
 
-  ipAddress = "";
-  port = 3000;
+  ipAddress = "192.168.X.X";
+  uptime = 0;
+
+  autostart = true;
+  serverRunning = false;
 
   constructor() { }
 
@@ -43,8 +46,6 @@ export class AppComponent implements OnInit {
   async exitApp() {
     await exit(0);
   }
-
-  unlistenBlur: any;
 
   async setUpTray() {
 
@@ -77,7 +78,7 @@ export class AppComponent implements OnInit {
     // console.log(tray);
     // this.enableAutostart();
     // this.handleSettings();
-    this.startServer();
+    this.startServer(this.port());
 
     this.getUptime();
 
@@ -116,7 +117,8 @@ export class AppComponent implements OnInit {
   async minimizeWindow() {
     // await this.appWindow.minimize();
     console.log('hiding');
-    await this.appWindow.hide(); // minimizes to tray
+    // next line disabled for dev:
+    // await this.appWindow.hide(); // minimizes to tray
   }
 
   async restoreWindow() {
@@ -124,13 +126,40 @@ export class AppComponent implements OnInit {
     await this.appWindow.show();
   }
 
-  startServer() {
+  startServer(port: number) {
 
-    const payload = "lol";
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    invoke<string>("please_start_server", { payload }).then((text) => {
-      console.log('server responded:', text);
+    console.log('starting on port', port);
+
+    if (port < 1025 || port > 65500) {
+      this.port.set(3000);
+    }
+
+    invoke<number>("please_start_server", { port }).then((text) => {
+      console.log('server start response:', text);
     });
+  }
+
+  stopServer() {
+    if (this.serverRunning) {
+      this.serverRunning = false;
+      invoke<string>("please_stop_server").then((text) => {
+        console.log('server responded:', text);
+      });
+    }
+  }
+
+  toggleServer() {
+    if (this.serverRunning) {
+      this.stopServer();
+    } else {
+      this.startServer(this.port());
+    }
+
+    this.serverRunning = !this.serverRunning;
+  }
+
+  toggleAutostart() {
+    this.autostart = !this.autostart;
   }
 
   async enableAutostart() {
@@ -156,8 +185,8 @@ export class AppComponent implements OnInit {
   }
 
   getUptime(): void {
-    invoke<string>("get_uptime").then((text) => {
-      this.uptime = text;
+    invoke<number>("get_uptime").then((duration) => {
+      this.uptime = duration;
     });
   }
 }
