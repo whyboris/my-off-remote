@@ -21,6 +21,11 @@
   <p class="uptime">System uptime: {{ uptime | duration }}</p>
   -->
 
-  <p class="autostart" (click)="toggleAutostart()">{{ autostart ? 'autostart' : 'no autostart' }}</p>
+  <div class="autostart-container">
+    <div class="hoverable">
+      <div class="placeholder">• • •</div>
+      <div class="autostart" (click)="toggleAutostart()" [style]="{ opacity: autostart ? 0.5 : 1 }">autostart {{ autostart ? 'OFF' : 'ON' }}</div>
+    </div>
+  </div>
 
 </main>

@@ -13,14 +13,14 @@
     "windows": [
       {
         "title": "my-off-remote",
-        "width": 400,
-        "height": 500,
-        "visible": false,
+        "width": 380,
+        "height": 475,
         "decorations": false,
         "resizable": false,
-        "transparent": true,
         "shadow": false,
-        "skipTaskbar": true
+        "skipTaskbar": true,
+        "transparent": true,
+        "visible": false
       }
     ],
     "security": {
