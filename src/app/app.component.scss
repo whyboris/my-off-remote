@@ -1,14 +1,11 @@
-.logo.angular:hover {
-  filter: drop-shadow(0 0 2em #e32727);
+* {
+  font-family: monospace;
 }
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
 
-  color: #0f0f0f;
+:root {
+  font-family: monospace;
   background-color: #f6f6f6;
+  color: #0f0f0f;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -35,7 +32,6 @@
 .ip-address,
 .port-input {
   display: inline-block;
-  font-family: monospace;
   font-size: 30px;
 }
 
@@ -55,46 +51,44 @@ input[type=number]:hover::-webkit-inner-spin-button {
 }
 
 .uptime {
-  font-family: monospace;
 }
 
 .qr-code {
   background: white;
+  border-color: grey;
   border-radius: 30px;
   border: 5px solid;
+  cursor: pointer;
   margin: 20px auto;
+  opacity: 0.5;
   padding: 20px;
   width: 260px;
-
-    border-color: grey;
-    cursor: pointer;
-    opacity: 0.5;
 }
 
 .autostart-container {
-  position: absolute;
   bottom: 3.5px;
-  width: 100%;
   font-size: 12px;
+  position: absolute;
+  width: 100%;
 
   .hoverable {
     cursor: pointer;
-    width: 100px;
     margin: auto;
+    width: 100px;
 
     .autostart {
-      margin: auto;
       cursor: pointer;
-      font-family: monospace;
       display: none;
+      margin: auto;
     }
 
     .placeholder {
+      font-family: arial;
+      display: inline-block;
       font-size: 14px;
       opacity: 0.5;
-      transform: translate(0, 2px);
-      display: inline-block;
-      width: 30px;
+      transform: translate(0, 1px);
+      width: 40px;
     }
 
     &:hover {
