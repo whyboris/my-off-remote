@@ -6,8 +6,8 @@ use axum::{
 use system_uptime::get_os_uptime_duration;
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
-use tower_http::services::ServeDir;
 use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
 
 struct AppState {
     shutdown_tx: broadcast::Sender<()>,
@@ -85,6 +85,7 @@ fn get_uptime() -> Option<u64> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_device_info::init())
         .plugin(tauri_plugin_store::Builder::new().build())
