@@ -31,12 +31,12 @@ export class AppComponent implements OnInit {
 
   port = model<number>(3000);
   serverRunning = signal<boolean>(false);
+  portTaken = signal<boolean>(false);
+  autostart = signal<boolean>(true);
 
   ipAddress = "192.168.X.X";
   uptime = 0;
 
-  portTaken = false;
-  autostart = true;
 
   constructor() { }
 
@@ -164,7 +164,7 @@ export class AppComponent implements OnInit {
         console.log(text);
         setTimeout(() => {
           if (text !== "server is off") { // hardcoded on back end, do not change either
-            this.portTaken = true;
+            this.portTaken.set(true);
           }
           this.serverRunning.set(false);
         }, 5);
@@ -176,7 +176,7 @@ export class AppComponent implements OnInit {
 
   async stopServer() {
 
-    this.portTaken = false;
+    this.portTaken.set(false);
 
     if (this.serverRunning()) {
 
@@ -200,7 +200,7 @@ export class AppComponent implements OnInit {
   }
 
   toggleAutostart() {
-    this.autostart = !this.autostart;
+    this.autostart.update(current => !current);
   }
 
   async enableAutostart() {

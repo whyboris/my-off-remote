@@ -6,8 +6,8 @@
     class="port-input"
     [(ngModel)]="port"
     (ngModelChange)="stopServer()"
-    [style.color]="portTaken ? 'red' : 'initial'"
-    [title]="portTaken ? 'port taken' : ''"
+    [style.color]="portTaken() ? 'red' : 'initial'"
+    [title]="portTaken() ? 'port taken' : ''"
     id="port"
     min="1025"
     max="65500"
@@ -29,8 +29,8 @@
   <div class="autostart-container">
     <div class="hoverable" (click)="toggleAutostart()">
       <div class="placeholder">• • •</div>
-      <div class="autostart" [style]="{ opacity: autostart ? 1 : 0.5 }">autostart
-        @if (autostart) {
+      <div class="autostart" [style]="{ opacity: autostart() ? 1 : 0.5 }">autostart
+        @if (autostart()) {
           <span style="color: green">ON&emsp;</span>
         } @else {
           <span>OFF</span>
