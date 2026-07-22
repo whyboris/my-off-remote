@@ -20,7 +20,7 @@ import { TrayIcon } from '@tauri-apps/api/tray';
   imports: [QrCodeComponent, FormsModule],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
 
@@ -41,21 +41,8 @@ export class AppComponent implements OnInit {
     this.setUpTray();
   }
 
-  async exitApp() {
-    await exit(0);
-  }
-
   async setUpTray() {
-
-    const menu = await Menu.new({
-      items: [
-        {
-          id: 'quit',
-          text: 'Quit',
-          action: this.exitApp,
-        },
-      ],
-    });
+    const menu = await Menu.new({ items: [{ id: 'quit', text: 'Quit', action: this.exitApp }] });
 
     const options: any = {
       menu,
@@ -71,44 +58,82 @@ export class AppComponent implements OnInit {
       }
     };
 
-    const tray = await TrayIcon.new(options);
-
-    // console.log(tray);
-    // this.enableAutostart();
-    // this.handleSettings();
-    // this.startServer(this.port());
-
-    this.getUptime();
+    await TrayIcon.new(options);
 
     this.appWindow = getCurrentWindow();
-
-    this.moveWindowDownRight();
+    this.moveWindowDownRight(); // TODO: handle Mac OS with move UP & RIGHT
 
     await listen(TauriEvent.WINDOW_BLUR, (event) => {
-      console.log('App lost focus');
+      console.log('App lost focus, minimizing');
       setTimeout(() => {
         this.minimizeWindow();
       }, 100); // helps with clicking on tray when window is open - reduces flicker
     });
-
-    // setTimeout(() => {
-    //   this.minimizeWindow();
-
-      setTimeout(() => {
-        this.restoreWindow();
-      }, 2000);
-
-    // }, 6000);
 
     const networkInfo = await getNetworkInfo();
     console.log("Local IP Address:", networkInfo.ipAddress);
     if (networkInfo.ipAddress) {
       this.ipAddress.set(networkInfo.ipAddress);
     }
+
+    // handle below better
+    // this.enableAutostart();
+    // this.handleSettings();
+    // this.startServer(this.port());
+    // this.getUptime();
+
+    // setTimeout(() => {
+    //   this.restoreWindow();
+    // }, 2000);
   }
 
-  async moveWindowDownRight() {
-    await moveWindow(Position.BottomRight);
+  // Server interactions
+
+  toggleServer() {
+    if (this.serverRunning()) {
+      console.log('stopping');
+      this.stopServer();
+    } else {
+      console.log('starting');
+      this.startServer(this.port());
+    }
+
+    // console.log('toggling...');
+    // this.serverRunning() = !this.serverRunning();
+  }
+
+  async startServer(port: number) {
+
+    console.log('starting on port', port);
+
+    if (port < 1025 || port > 65500) {
+      this.port.set(3000);
+    }
+
+    // do not `await` since text returns only when server errors out
+    invoke<string>("please_start_server", { port }).then((text) => {
+      if (text) {
+        // text returns on error (port taken) or after shut down (return string after axum::serve)
+        console.log(text);
+        setTimeout(() => {
+          if (text !== "server is off") { // hardcoded on back end, update both if changing
+            this.portTaken.set(true);
+          }
+          this.serverRunning.set(false);
+        }, 5);
+      }
+    })
+
+    this.serverRunning.set(true);
+  }
+
+  async stopServer() {
+    this.portTaken.set(false);
+
+    if (this.serverRunning()) {
+      await this.requestServerShutdown();
+      this.serverRunning.set(false);
+    }
   }
 
   /**
@@ -133,80 +158,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  async minimizeWindow() {
-    // await this.appWindow.minimize();
-    console.log('hiding');
-    // next line disabled for dev:
-    // await this.appWindow.hide(); // minimizes to tray
-  }
-
-  async restoreWindow() {
-    console.log('showing');
-    await this.appWindow.show();
-  }
-
-  async startServer(port: number) {
-
-    console.log('starting on port', port);
-
-    if (port < 1025 || port > 65500) {
-      this.port.set(3000);
-    }
-
-    // do not `await` since text returns only when server errors out
-    invoke<string>("please_start_server", { port }).then((text) => {
-      if (text) {
-        // text returns on error (port taken) or after shut down (return string after axum::serve)
-        console.log(text);
-        setTimeout(() => {
-          if (text !== "server is off") { // hardcoded on back end, do not change either
-            this.portTaken.set(true);
-          }
-          this.serverRunning.set(false);
-        }, 5);
-      }
-    })
-
-    this.serverRunning.set(true);
-  }
-
-  async stopServer() {
-
-    this.portTaken.set(false);
-
-    if (this.serverRunning()) {
-
-      await this.requestServerShutdown();
-
-      this.serverRunning.set(false);
-    }
-  }
-
-  toggleServer() {
-    if (this.serverRunning()) {
-      console.log('stopping');
-      this.stopServer();
-    } else {
-      console.log('starting');
-      this.startServer(this.port());
-    }
-
-    // console.log('toggling...');
-    // this.serverRunning() = !this.serverRunning();
-  }
-
-  toggleAutostart() {
-    this.autostart.update(current => !current);
-  }
-
-  async enableAutostart() {
-    // Enable autostart
-    await enable();
-    // Check enable state
-    console.log(`registered for autostart? ${await isEnabled()}`);
-    // Disable autostart
-    disable();
-  }
+  // Utility functions
 
   async handleSettings() {
     const defaults = {
@@ -221,13 +173,49 @@ export class AppComponent implements OnInit {
     console.log(hi);
   }
 
+  toggleAutostart() {
+    console.log('AUTOSTART toggle does nothing currently');
+    this.autostart.update(current => !current);
+  }
+
+  async enableAutostart() {
+    console.log('AUTOSTART NOT IMPLEMENTED');
+    // Enable autostart
+    await enable();
+    // Check enable state
+    console.log(`registered for autostart? ${await isEnabled()}`);
+    // Disable autostart
+    disable();
+  }
+
   copyToClipboard(): void {
     navigator.clipboard.writeText("http://" + this.ipAddress() + ":" + this.port());
   }
 
+  // Window interactions
+
+  async moveWindowDownRight() {
+    await moveWindow(Position.BottomRight);
+  }
+
+  async minimizeWindow() {
+    await this.appWindow.hide();
+  }
+
+  async restoreWindow() {
+    await this.appWindow.show();
+  }
+
+  // Misc
+
+  // uptime not used. Note: there is a pipe that pretty-prints the number
   async getUptime() {
     await invoke<number>("get_uptime").then((duration) => {
       this.uptime = duration;
     });
+  }
+
+  async exitApp() {
+    await exit(0);
   }
 }
