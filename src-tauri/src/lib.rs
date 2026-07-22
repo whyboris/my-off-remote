@@ -1,21 +1,64 @@
-use axum::{routing::get, Router};
+use axum::{
+    extract::State,
+    routing::{get, post},
+    Router,
+};
 use system_uptime::get_os_uptime_duration;
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
 use tower_http::services::ServeDir;
+use tower_http::cors::CorsLayer;
 
-async fn start_my_server(port: u16) {
+struct AppState {
+    shutdown_tx: broadcast::Sender<()>,
+}
+
+#[tauri::command]
+async fn please_start_server(port: u16) -> String {
     let static_files_service = ServeDir::new("public");
 
+    let (shutdown_tx, _) = broadcast::channel(1);
+    let app_state = std::sync::Arc::new(AppState { shutdown_tx });
+
+    let cors = CorsLayer::permissive();
+
     let app = Router::new()
+        .route("/off", post(trigger_shutdown))
         .route("/", get(|| async { "Hello World" }))
         .fallback_service(ServeDir::new("assets"))
-        .nest_service("/static", static_files_service);
+        .nest_service("/static", static_files_service)
+        .layer(cors)
+        .with_state(app_state.clone());
 
-    let listener = tokio::net::TcpListener::bind(format!("{}{}", "0.0.0.0:", port)).await.unwrap();
+    match TcpListener::bind(format!("{}{}", "0.0.0.0:", port)).await {
+        Ok(listener) => {
+            println!("Listening on: {}", listener.local_addr().unwrap());
 
-    println!("Listening on: {}", listener.local_addr().unwrap());
+            let shutdown_rx = app_state.shutdown_tx.subscribe();
 
-    // Axum server runs here
-    axum::serve(listener, app).await.unwrap();
+            axum::serve(listener, app)
+                .with_graceful_shutdown(async move {
+                    let mut rx = shutdown_rx;
+                    let _ = rx.recv().await;
+                    println!("Shutdown signal received!");
+                })
+                .await
+                .unwrap(); // runs forever
+
+            println!("server just shut down!");
+
+            format!("server is off") // hardcoded value expected on front end verbatim!
+        }
+        Err(e) => {
+            format!("error: {}", e)
+        }
+    }
+}
+
+async fn trigger_shutdown(State(state): State<std::sync::Arc<AppState>>) -> &'static str {
+    println!("Initiating shutdown from /trigger-shutdown endpoint...");
+    let _ = state.shutdown_tx.send(());
+    "Shutdown initiated. Server will now drain active connections."
 }
 
 #[tauri::command]
@@ -31,29 +74,12 @@ fn shutdown_windows() -> Result<(), String> {
 #[tauri::command]
 fn get_uptime() -> Option<u64> {
     match get_os_uptime_duration() {
-        Ok(uptime) => {
-            Some(uptime.as_secs())
-        }
+        Ok(uptime) => Some(uptime.as_secs()),
         Err(e) => {
             eprintln!("Failed to get uptime: {}", e);
             None
         }
     }
-}
-
-#[tauri::command]
-async fn please_start_server(port: u16) -> Result<String, String> {
-    start_my_server(port).await;
-
-    // Perform async I/O or network requests
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-
-    Ok(format!("Processed: {}", port.to_string()))
-}
-
-#[tauri::command]
-async fn please_stop_server() -> Result<String, String> {
-    Ok(format!("not implemented"))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -68,7 +94,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_uptime,
             please_start_server,
-            please_stop_server,
             shutdown_windows,
         ])
         .run(tauri::generate_context!())

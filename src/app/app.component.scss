@@ -32,18 +32,19 @@
 .ip-address,
 .port-input {
   display: inline-block;
-  font-size: 30px;
+  font-size: 26px;
 }
 
 .ip-address {
   color: #888888;
+  padding-left: 16px;
   cursor: default;
-  padding-left: 50px;
 }
 
 .port-input {
   background: transparent;
   border: 0;
+  width: 90px;
 }
 
 input[type=number]:hover::-webkit-inner-spin-button {

@@ -6,6 +6,8 @@
     class="port-input"
     [(ngModel)]="port"
     (ngModelChange)="stopServer()"
+    [style.color]="portTaken ? 'red' : 'initial'"
+    [title]="portTaken ? 'port taken' : ''"
     id="port"
     min="1025"
     max="65500"
