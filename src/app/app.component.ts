@@ -4,12 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { QrCodeComponent } from 'ng-qrcode';
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
-import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { enable, disable } from '@tauri-apps/plugin-autostart';
 import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
-import { listen, TauriEvent } from '@tauri-apps/api/event';
+import { emit, listen, TauriEvent } from '@tauri-apps/api/event';
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
@@ -33,6 +33,8 @@ export class AppComponent implements OnInit {
   portTaken = signal<boolean>(false);
   serverRunning = signal<boolean>(false);
 
+  lastRunningServerUrl = "";
+
   uptime = 0; // unused
 
   constructor() { }
@@ -42,7 +44,7 @@ export class AppComponent implements OnInit {
   }
 
   async setUpTray() {
-    const menu = await Menu.new({ items: [{ id: 'quit', text: 'Quit', action: this.exitApp }] });
+    const menu = await Menu.new({ items: [{ id: 'quit', text: 'Quit', action: async () => { await emit('quit-request')} }] });
 
     const options: any = {
       menu,
@@ -76,15 +78,11 @@ export class AppComponent implements OnInit {
       this.ipAddress.set(networkInfo.ipAddress);
     }
 
-    // handle below better
-    // this.enableAutostart();
-    // this.handleSettings();
-    // this.startServer(this.port());
-    // this.getUptime();
+    this.handleSettings();
 
-    // setTimeout(() => {
-    //   this.restoreWindow();
-    // }, 2000);
+    await listen('quit-request', (event) => {
+      this.exitApp();
+    });
   }
 
   // Server interactions
@@ -124,6 +122,7 @@ export class AppComponent implements OnInit {
       }
     })
 
+    this.lastRunningServerUrl = 'http://' + this.ipAddress() + ':' + this.port();
     this.serverRunning.set(true);
   }
 
@@ -131,8 +130,8 @@ export class AppComponent implements OnInit {
     this.portTaken.set(false);
 
     if (this.serverRunning()) {
-      await this.requestServerShutdown();
       this.serverRunning.set(false);
+      await this.requestServerShutdown();
     }
   }
 
@@ -140,9 +139,7 @@ export class AppComponent implements OnInit {
    * Makes POST request to `/off` endpoint to initiate server shutdown
    */
   async requestServerShutdown() {
-    const url = "http://" + this.ipAddress() + ':' + this.port() + '/off';
-
-    console.log(url);
+    const url = this.lastRunningServerUrl + '/off';
 
     try {
       const response = await fetch(url, { method: 'post' });
@@ -162,30 +159,34 @@ export class AppComponent implements OnInit {
 
   async handleSettings() {
     const defaults = {
-      'hi': 'hello world',
-      'hihi': 'auto saved to store'
+      'autostart': false,
+      'port': 3000
     };
     this.store = await load('store.json', { autoSave: true, defaults });
-    const savedTheme = await this.store.get('theme');
-    const hi = await this.store.get('hi');
-    console.log('STORE:');
-    console.log(savedTheme);
-    console.log(hi);
+
+    const autostart: boolean = await this.store.get('autostart');
+    const port: number = await this.store.get('port');
+
+    this.autostart.set(autostart);
+    this.port.set(port)
+
+    if (autostart) {
+      this.startServer(port);
+    }
   }
 
-  toggleAutostart() {
-    console.log('AUTOSTART toggle does nothing currently');
+  async toggleAutostart() {
     this.autostart.update(current => !current);
-  }
 
-  async enableAutostart() {
-    console.log('AUTOSTART NOT IMPLEMENTED');
-    // Enable autostart
-    await enable();
-    // Check enable state
-    console.log(`registered for autostart? ${await isEnabled()}`);
-    // Disable autostart
-    disable();
+    await this.store.set('autostart', this.autostart());
+
+    if (this.autostart()) {
+      await enable();
+    } else {
+      disable();
+    }
+
+    console.log("store autostart:", await this.store.get('autostart'));
   }
 
   copyToClipboard(): void {
@@ -216,6 +217,7 @@ export class AppComponent implements OnInit {
   }
 
   async exitApp() {
+    await this.store.set('port', this.port());
     await exit(0);
   }
 }

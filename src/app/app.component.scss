@@ -56,6 +56,10 @@ input[type=number]:hover::-webkit-inner-spin-button {
   cursor: ns-resize;
 }
 
+input:focus {
+  outline: none;
+}
+
 .qr-code {
   background: white;
   border-color: grey;
