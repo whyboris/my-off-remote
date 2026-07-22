@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, model, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from '@angular/forms';
 
 import { QrCodeComponent } from 'ng-qrcode';
@@ -24,19 +24,16 @@ import { TrayIcon } from '@tauri-apps/api/tray';
 })
 export class AppComponent implements OnInit {
 
-  private cd = inject(ChangeDetectorRef);
-
   appWindow: any;
   store: any;
 
   port = model<number>(3000);
-  serverRunning = signal<boolean>(false);
-  portTaken = signal<boolean>(false);
   autostart = signal<boolean>(true);
+  ipAddress = signal<string>("192.168.X.X");
+  portTaken = signal<boolean>(false);
+  serverRunning = signal<boolean>(false);
 
-  ipAddress = "192.168.X.X";
-  uptime = 0;
-
+  uptime = 0; // unused
 
   constructor() { }
 
@@ -106,8 +103,7 @@ export class AppComponent implements OnInit {
     const networkInfo = await getNetworkInfo();
     console.log("Local IP Address:", networkInfo.ipAddress);
     if (networkInfo.ipAddress) {
-      this.ipAddress = networkInfo.ipAddress;
-      this.cd.detectChanges();
+      this.ipAddress.set(networkInfo.ipAddress);
     }
   }
 
@@ -119,7 +115,7 @@ export class AppComponent implements OnInit {
    * Makes POST request to `/off` endpoint to initiate server shutdown
    */
   async requestServerShutdown() {
-    const url = "http://" + this.ipAddress + ':' + this.port() + '/off';
+    const url = "http://" + this.ipAddress() + ':' + this.port() + '/off';
 
     console.log(url);
 
@@ -226,7 +222,7 @@ export class AppComponent implements OnInit {
   }
 
   copyToClipboard(): void {
-    navigator.clipboard.writeText("http://" + this.ipAddress + ":" + this.port());
+    navigator.clipboard.writeText("http://" + this.ipAddress() + ":" + this.port());
   }
 
   async getUptime() {

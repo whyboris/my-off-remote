@@ -1,6 +1,6 @@
 <main class="container" [class]="{ 'remote-on': serverRunning() }">
 
-  <div class="ip-address" title="copy to clipboard" (click)="copyToClipboard()">{{ ipAddress }}:</div>
+  <div class="ip-address" title="copy to clipboard" (click)="copyToClipboard()">{{ ipAddress() }}:</div>
 
   <input
     class="port-input"
@@ -20,7 +20,7 @@
   >
     <qr-code
       [style]="{ 'border-radius': '10px', 'border-bottom-right-radius': '0' }"
-      value="{{ 'http://' + ipAddress + ':' + port() }}"
+      value="{{ 'http://' + ipAddress() + ':' + port() }}"
       size="260"
       margin="0"
       errorCorrectionLevel="M" />
