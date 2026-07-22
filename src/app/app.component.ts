@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef, model } from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from '@angular/forms';
 
 import { QrCodeComponent } from 'ng-qrcode';
@@ -30,13 +30,13 @@ export class AppComponent implements OnInit {
   store: any;
 
   port = model<number>(3000);
+  serverRunning = signal<boolean>(false);
 
   ipAddress = "192.168.X.X";
   uptime = 0;
 
   portTaken = false;
   autostart = true;
-  serverRunning = false;
 
   constructor() { }
 
@@ -166,29 +166,28 @@ export class AppComponent implements OnInit {
           if (text !== "server is off") { // hardcoded on back end, do not change either
             this.portTaken = true;
           }
-          this.serverRunning = false;
-          this.cd.detectChanges();
+          this.serverRunning.set(false);
         }, 5);
       }
     })
 
-    this.serverRunning = true;
+    this.serverRunning.set(true);
   }
 
   async stopServer() {
 
     this.portTaken = false;
 
-    if (this.serverRunning) {
+    if (this.serverRunning()) {
 
       await this.requestServerShutdown();
 
-      this.serverRunning = false;
+      this.serverRunning.set(false);
     }
   }
 
   toggleServer() {
-    if (this.serverRunning) {
+    if (this.serverRunning()) {
       console.log('stopping');
       this.stopServer();
     } else {
@@ -197,7 +196,7 @@ export class AppComponent implements OnInit {
     }
 
     // console.log('toggling...');
-    // this.serverRunning = !this.serverRunning;
+    // this.serverRunning() = !this.serverRunning();
   }
 
   toggleAutostart() {
@@ -224,6 +223,10 @@ export class AppComponent implements OnInit {
     console.log('STORE:');
     console.log(savedTheme);
     console.log(hi);
+  }
+
+  copyToClipboard(): void {
+    navigator.clipboard.writeText("http://" + this.ipAddress + ":" + this.port());
   }
 
   async getUptime() {

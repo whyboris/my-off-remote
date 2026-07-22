@@ -5,6 +5,11 @@
     <title>My Off Remote</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+      });
+    </script>
   </head>
   <body>
     <app-root></app-root>

@@ -1,5 +1,6 @@
 * {
   font-family: monospace;
+  user-select: none;
 }
 
 :root {
@@ -37,8 +38,12 @@
 
 .ip-address {
   color: #888888;
+  cursor: pointer;
   padding-left: 16px;
-  cursor: default;
+
+  &:active {
+    color: green;
+  }
 }
 
 .port-input {
