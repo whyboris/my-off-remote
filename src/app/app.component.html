@@ -1,13 +1,13 @@
-<main class="container" [class]="{ 'remote-on': serverRunning }">
+<main class="container" [class]="{ 'remote-on': serverRunning() }">
 
-  <div class="ip-address">{{ ipAddress }}:</div>
+  <div class="ip-address" title="copy to clipboard" (click)="copyToClipboard()">{{ ipAddress() }}:</div>
 
   <input
     class="port-input"
     [(ngModel)]="port"
     (ngModelChange)="stopServer()"
-    [style.color]="portTaken ? 'red' : 'initial'"
-    [title]="portTaken ? 'port taken' : ''"
+    [style.color]="portTaken() ? 'red' : 'initial'"
+    [title]="portTaken() ? 'port taken' : ''"
     id="port"
     min="1025"
     max="65500"
@@ -16,20 +16,26 @@
   <div
     class="qr-code"
     (click)="toggleServer()"
-    title="remote is {{ serverRunning ? 'ON' : 'OFF' }}"
+    title="remote is {{ serverRunning() ? 'ON' : 'OFF' }}"
   >
     <qr-code
       [style]="{ 'border-radius': '10px', 'border-bottom-right-radius': '0' }"
-      value="{{ 'http://' + ipAddress + ':' + port() }}"
+      value="{{ 'http://' + ipAddress() + ':' + port() }}"
       size="260"
       margin="0"
       errorCorrectionLevel="M" />
   </div>
 
   <div class="autostart-container">
-    <div class="hoverable">
+    <div class="hoverable" (click)="toggleAutostart()">
       <div class="placeholder">• • •</div>
-      <div class="autostart" (click)="toggleAutostart()" [style]="{ opacity: autostart ? 0.5 : 1 }">autostart {{ autostart ? 'OFF' : 'ON' }}</div>
+      <div class="autostart" [style]="{ opacity: autostart() ? 1 : 0.5 }">autostart
+        @if (autostart()) {
+          <span style="color: green">ON&emsp;</span>
+        } @else {
+          <span>OFF</span>
+        }
+      </div>
     </div>
   </div>
 

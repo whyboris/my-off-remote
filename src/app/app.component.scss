@@ -1,5 +1,6 @@
 * {
   font-family: monospace;
+  user-select: none;
 }
 
 :root {
@@ -37,8 +38,12 @@
 
 .ip-address {
   color: #888888;
+  cursor: pointer;
   padding-left: 16px;
-  cursor: default;
+
+  &:active {
+    color: green;
+  }
 }
 
 .port-input {
@@ -49,6 +54,10 @@
 
 input[type=number]:hover::-webkit-inner-spin-button {
   cursor: ns-resize;
+}
+
+input:focus {
+  outline: none;
 }
 
 .qr-code {

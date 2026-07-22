@@ -1,15 +1,15 @@
-import { Component, OnInit, ChangeDetectionStrategy, inject, ChangeDetectorRef, model } from "@angular/core";
+import { ChangeDetectionStrategy, Component, model, OnInit, signal } from "@angular/core";
 import { FormsModule } from '@angular/forms';
 
 import { QrCodeComponent } from 'ng-qrcode';
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
-import { enable, isEnabled, disable } from '@tauri-apps/plugin-autostart';
+import { enable, disable } from '@tauri-apps/plugin-autostart';
 import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
-import { listen, TauriEvent } from '@tauri-apps/api/event';
+import { emit, listen, TauriEvent } from '@tauri-apps/api/event';
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
@@ -20,23 +20,22 @@ import { TrayIcon } from '@tauri-apps/api/tray';
   imports: [QrCodeComponent, FormsModule],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
-
-  private cd = inject(ChangeDetectorRef);
 
   appWindow: any;
   store: any;
 
   port = model<number>(3000);
+  autostart = signal<boolean>(true);
+  ipAddress = signal<string>("192.168.X.X");
+  portTaken = signal<boolean>(false);
+  serverRunning = signal<boolean>(false);
 
-  ipAddress = "192.168.X.X";
-  uptime = 0;
+  lastRunningServerUrl = "";
 
-  portTaken = false;
-  autostart = true;
-  serverRunning = false;
+  uptime = 0; // unused
 
   constructor() { }
 
@@ -44,21 +43,8 @@ export class AppComponent implements OnInit {
     this.setUpTray();
   }
 
-  async exitApp() {
-    await exit(0);
-  }
-
   async setUpTray() {
-
-    const menu = await Menu.new({
-      items: [
-        {
-          id: 'quit',
-          text: 'Quit',
-          action: this.exitApp,
-        },
-      ],
-    });
+    const menu = await Menu.new({ items: [{ id: 'quit', text: 'Quit', action: async () => { await emit('quit-request')} }] });
 
     const options: any = {
       menu,
@@ -74,79 +60,44 @@ export class AppComponent implements OnInit {
       }
     };
 
-    const tray = await TrayIcon.new(options);
-
-    // console.log(tray);
-    // this.enableAutostart();
-    // this.handleSettings();
-    // this.startServer(this.port());
-
-    this.getUptime();
+    await TrayIcon.new(options);
 
     this.appWindow = getCurrentWindow();
-
-    this.moveWindowDownRight();
+    this.moveWindowDownRight(); // TODO: handle Mac OS with move UP & RIGHT
 
     await listen(TauriEvent.WINDOW_BLUR, (event) => {
-      console.log('App lost focus');
+      console.log('App lost focus, minimizing');
       setTimeout(() => {
         this.minimizeWindow();
       }, 100); // helps with clicking on tray when window is open - reduces flicker
     });
 
-    // setTimeout(() => {
-    //   this.minimizeWindow();
-
-      setTimeout(() => {
-        this.restoreWindow();
-      }, 2000);
-
-    // }, 6000);
-
     const networkInfo = await getNetworkInfo();
     console.log("Local IP Address:", networkInfo.ipAddress);
     if (networkInfo.ipAddress) {
-      this.ipAddress = networkInfo.ipAddress;
-      this.cd.detectChanges();
+      this.ipAddress.set(networkInfo.ipAddress);
     }
+
+    this.handleSettings();
+
+    await listen('quit-request', (event) => {
+      this.exitApp();
+    });
   }
 
-  async moveWindowDownRight() {
-    await moveWindow(Position.BottomRight);
-  }
+  // Server interactions
 
-  /**
-   * Makes POST request to `/off` endpoint to initiate server shutdown
-   */
-  async requestServerShutdown() {
-    const url = "http://" + this.ipAddress + ':' + this.port() + '/off';
-
-    console.log(url);
-
-    try {
-      const response = await fetch(url, { method: 'post' });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      console.log('Success!', response);
-
-    } catch (error) {
-      console.error('Native fetch failed:', error);
+  toggleServer() {
+    if (this.serverRunning()) {
+      console.log('stopping');
+      this.stopServer();
+    } else {
+      console.log('starting');
+      this.startServer(this.port());
     }
-  }
 
-  async minimizeWindow() {
-    // await this.appWindow.minimize();
-    console.log('hiding');
-    // next line disabled for dev:
-    // await this.appWindow.hide(); // minimizes to tray
-  }
-
-  async restoreWindow() {
-    console.log('showing');
-    await this.appWindow.show();
+    // console.log('toggling...');
+    // this.serverRunning() = !this.serverRunning();
   }
 
   async startServer(port: number) {
@@ -163,72 +114,110 @@ export class AppComponent implements OnInit {
         // text returns on error (port taken) or after shut down (return string after axum::serve)
         console.log(text);
         setTimeout(() => {
-          if (text !== "server is off") { // hardcoded on back end, do not change either
-            this.portTaken = true;
+          if (text !== "server is off") { // hardcoded on back end, update both if changing
+            this.portTaken.set(true);
           }
-          this.serverRunning = false;
-          this.cd.detectChanges();
+          this.serverRunning.set(false);
         }, 5);
       }
     })
 
-    this.serverRunning = true;
+    this.lastRunningServerUrl = 'http://' + this.ipAddress() + ':' + this.port();
+    this.serverRunning.set(true);
   }
 
   async stopServer() {
+    this.portTaken.set(false);
 
-    this.portTaken = false;
-
-    if (this.serverRunning) {
-
+    if (this.serverRunning()) {
+      this.serverRunning.set(false);
       await this.requestServerShutdown();
-
-      this.serverRunning = false;
     }
   }
 
-  toggleServer() {
-    if (this.serverRunning) {
-      console.log('stopping');
-      this.stopServer();
-    } else {
-      console.log('starting');
-      this.startServer(this.port());
+  /**
+   * Makes POST request to `/off` endpoint to initiate server shutdown
+   */
+  async requestServerShutdown() {
+    const url = this.lastRunningServerUrl + '/off';
+
+    try {
+      const response = await fetch(url, { method: 'post' });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      console.log('Success!', response);
+
+    } catch (error) {
+      console.error('Native fetch failed:', error);
     }
-
-    // console.log('toggling...');
-    // this.serverRunning = !this.serverRunning;
   }
 
-  toggleAutostart() {
-    this.autostart = !this.autostart;
-  }
-
-  async enableAutostart() {
-    // Enable autostart
-    await enable();
-    // Check enable state
-    console.log(`registered for autostart? ${await isEnabled()}`);
-    // Disable autostart
-    disable();
-  }
+  // Utility functions
 
   async handleSettings() {
     const defaults = {
-      'hi': 'hello world',
-      'hihi': 'auto saved to store'
+      'autostart': false,
+      'port': 3000
     };
     this.store = await load('store.json', { autoSave: true, defaults });
-    const savedTheme = await this.store.get('theme');
-    const hi = await this.store.get('hi');
-    console.log('STORE:');
-    console.log(savedTheme);
-    console.log(hi);
+
+    const autostart: boolean = await this.store.get('autostart');
+    const port: number = await this.store.get('port');
+
+    this.autostart.set(autostart);
+    this.port.set(port)
+
+    if (autostart) {
+      this.startServer(port);
+    }
   }
 
+  async toggleAutostart() {
+    this.autostart.update(current => !current);
+
+    await this.store.set('autostart', this.autostart());
+
+    if (this.autostart()) {
+      await enable();
+    } else {
+      disable();
+    }
+
+    console.log("store autostart:", await this.store.get('autostart'));
+  }
+
+  copyToClipboard(): void {
+    navigator.clipboard.writeText("http://" + this.ipAddress() + ":" + this.port());
+  }
+
+  // Window interactions
+
+  async moveWindowDownRight() {
+    await moveWindow(Position.BottomRight);
+  }
+
+  async minimizeWindow() {
+    await this.appWindow.hide();
+  }
+
+  async restoreWindow() {
+    await this.appWindow.show();
+  }
+
+  // Misc
+
+  // uptime not used. Note: there is a pipe that pretty-prints the number
   async getUptime() {
     await invoke<number>("get_uptime").then((duration) => {
       this.uptime = duration;
     });
+  }
+
+  async exitApp() {
+    await this.store.set('port', this.port());
+    await exit(0);
   }
 }
