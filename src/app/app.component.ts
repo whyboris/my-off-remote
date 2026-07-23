@@ -4,15 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { QrCodeComponent } from 'ng-qrcode';
 
 import { defaultWindowIcon } from "@tauri-apps/api/app";
+import { emit, listen, TauriEvent } from '@tauri-apps/api/event';
 import { enable, disable } from '@tauri-apps/plugin-autostart';
 import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getNetworkInfo } from 'tauri-plugin-device-info-api';
 import { invoke } from "@tauri-apps/api/core";
-import { emit, listen, TauriEvent } from '@tauri-apps/api/event';
 import { load } from '@tauri-apps/plugin-store';
 import { Menu } from "@tauri-apps/api/menu";
 import { moveWindow, Position } from "@tauri-apps/plugin-positioner";
+import { platform } from '@tauri-apps/plugin-os';
 import { TrayIcon } from '@tauri-apps/api/tray';
 
 @Component({
@@ -26,6 +27,7 @@ export class AppComponent implements OnInit {
 
   appWindow: any;
   store: any;
+  currentPlatform = platform();
 
   port = model<number>(3000);
   autostart = signal<boolean>(true);
@@ -52,8 +54,15 @@ export class AppComponent implements OnInit {
       action: (event: any) => {
         switch (event.type) {
           case 'Click':
-            if (event.button === "Left" && event.buttonState === "Up") {
-              this.restoreWindow();
+            if (this.currentPlatform === 'macos') {
+              if (event.button === "Left" && event.buttonState === "Down") {
+                // mac doesn't have the "Up" state?!??
+                this.restoreWindow();
+              }
+            } else {
+              if (event.button === "Left" && event.buttonState === "Up") {
+                this.restoreWindow();
+              }
             }
             break;
         }
@@ -196,7 +205,11 @@ export class AppComponent implements OnInit {
   // Window interactions
 
   async moveWindowDownRight() {
-    await moveWindow(Position.BottomRight);
+    if (this.currentPlatform === "windows") {
+      await moveWindow(Position.BottomRight);
+    } else {
+      await moveWindow(Position.TopRight);
+    }
   }
 
   async minimizeWindow() {

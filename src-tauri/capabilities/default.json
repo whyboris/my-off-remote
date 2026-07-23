@@ -17,6 +17,7 @@
     "core:window:allow-show",
     "positioner:allow-move-window",
     "device-info:allow-get-network-info",
-    "process:default"
+    "process:default",
+    "os:default"
   ]
 }

@@ -8,6 +8,7 @@ use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
+use system_shutdown::shutdown;
 
 struct AppState {
     shutdown_tx: broadcast::Sender<()>,
@@ -63,21 +64,12 @@ async fn trigger_server_shutdown(State(state): State<std::sync::Arc<AppState>>) 
 }
 
 async fn shutdown_computer() -> &'static str {
-
-    // if windows
-    let _ = shutdown_windows_now();
-    // if mac - not yet implemented
+    match shutdown() {
+        Ok(_) => println!("Shutting down, bye!"),
+        Err(error) => eprintln!("Failed to shut down: {}", error),
+    }
 
     "shutting down your computer..."
-}
-
-fn shutdown_windows_now() -> Result<(), String> {
-    // Execute: shutdown /s /t 0 (shutdown immediately)
-    std::process::Command::new("shutdown")
-        .args(["/s", "/t", "0"])
-        .output()
-        .map_err(|e| format!("Failed to execute shutdown: {}", e))?;
-    Ok(())
 }
 
 #[tauri::command]
@@ -94,6 +86,7 @@ fn get_uptime() -> Option<u64> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_device_info::init())
@@ -101,10 +94,7 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_positioner::init())
-        .invoke_handler(tauri::generate_handler![
-            get_uptime,
-            please_start_server,
-        ])
+        .invoke_handler(tauri::generate_handler![get_uptime, please_start_server,])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
