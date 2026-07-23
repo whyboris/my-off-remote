@@ -12,6 +12,6 @@ Install _Tauri_ and _npm_
 
 `npm run tauri build` to build
 
-## Notes
+## How it works
 
-Not yet set up for _Mac_
+App lives in your tray. Shows you a QR code; click on it to enable functionality (run a server at the chosen port). Scan QR code with phone and open the webpage in your browser; click on the button to shut down the computer.

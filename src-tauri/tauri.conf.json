@@ -10,6 +10,7 @@
     "frontendDist": "../dist/my-off-remote/browser"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "my-off-remote",
