@@ -48,7 +48,8 @@
     },
     "resources": [
       "assets/index.html",
-      "assets/remote.jpg"
+      "assets/remote.jpg",
+      "assets/icon.png"
     ]
   }
 }
