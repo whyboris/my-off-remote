@@ -47,7 +47,9 @@
       }
     },
     "resources": [
-      "assets/lol.html"
+      "assets/index.html",
+      "assets/remote.jpg",
+      "assets/icon.png"
     ]
   }
 }
