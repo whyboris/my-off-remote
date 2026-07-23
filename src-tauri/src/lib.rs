@@ -23,8 +23,9 @@ async fn please_start_server(port: u16) -> String {
     let cors = CorsLayer::permissive();
 
     let app = Router::new()
-        .route("/off", post(trigger_shutdown))
-        .route("/", get(|| async { "Hello World" }))
+        .route("/off", post(trigger_server_shutdown))
+        .route("/off", get(shutdown_computer))
+        // .route("/", get(|| async { "Hello World" }))
         .fallback_service(ServeDir::new("assets"))
         .nest_service("/static", static_files_service)
         .layer(cors)
@@ -55,14 +56,22 @@ async fn please_start_server(port: u16) -> String {
     }
 }
 
-async fn trigger_shutdown(State(state): State<std::sync::Arc<AppState>>) -> &'static str {
+async fn trigger_server_shutdown(State(state): State<std::sync::Arc<AppState>>) -> &'static str {
     println!("Initiating shutdown from /trigger-shutdown endpoint...");
     let _ = state.shutdown_tx.send(());
     "Shutdown initiated. Server will now drain active connections."
 }
 
-#[tauri::command]
-fn shutdown_windows() -> Result<(), String> {
+async fn shutdown_computer() -> &'static str {
+
+    // if windows
+    let _ = shutdown_windows_now();
+    // if mac - not yet implemented
+
+    "shutting down your computer..."
+}
+
+fn shutdown_windows_now() -> Result<(), String> {
     // Execute: shutdown /s /t 0 (shutdown immediately)
     std::process::Command::new("shutdown")
         .args(["/s", "/t", "0"])
@@ -95,7 +104,6 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_uptime,
             please_start_server,
-            shutdown_windows,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
